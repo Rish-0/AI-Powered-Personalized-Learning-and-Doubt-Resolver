@@ -1,5 +1,7 @@
 from pathlib import Path
 import shutil
+import uuid
+
 from fastapi import UploadFile, HTTPException
 
 from app.core.constants import (
@@ -16,30 +18,43 @@ class FileService:
         extension = Path(file.filename).suffix.lower()
 
         if extension not in ALLOWED_EXTENSIONS:
+
             raise HTTPException(
                 status_code=400,
                 detail="Only PDF files are allowed."
             )
 
         file.file.seek(0, 2)
+
         size = file.file.tell()
+
         file.file.seek(0)
 
         if size > MAX_FILE_SIZE:
+
             raise HTTPException(
                 status_code=400,
-                detail="File exceeds 20 MB."
+                detail="Maximum file size is 20 MB."
             )
 
-        upload_path = Path(UPLOAD_DIRECTORY)
-        upload_path.mkdir(exist_ok=True)
+        upload_dir = Path(UPLOAD_DIRECTORY)
 
-        destination = upload_path / file.filename
+        upload_dir.mkdir(exist_ok=True)
+
+        unique_name = f"{uuid.uuid4()}{extension}"
+
+        destination = upload_dir / unique_name
 
         with destination.open("wb") as buffer:
+
             shutil.copyfileobj(file.file, buffer)
 
         return {
-            "filename": file.filename,
+
+            "original_name": file.filename,
+
+            "saved_name": unique_name,
+
             "path": str(destination)
+
         }
