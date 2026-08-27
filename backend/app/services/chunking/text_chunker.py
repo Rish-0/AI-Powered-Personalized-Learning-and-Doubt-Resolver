@@ -1,4 +1,5 @@
 from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_core.documents import Document
 
 from app.services.chunking.metadata import ChunkMetadata
 
@@ -44,12 +45,14 @@ class TextChunker:
 
                 )
 
-                all_chunks.append({
+                all_chunks.append(
+                    Document(
 
-                    "text": chunk,
+                    page_content=chunk,
 
-                    "metadata": metadata
+                    metadata=metadata
 
-                })
+                )
+                )
 
         return all_chunks

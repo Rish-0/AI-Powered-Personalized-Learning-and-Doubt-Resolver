@@ -1,39 +1,19 @@
-from fastapi import APIRouter, UploadFile, File
+from fastapi import APIRouter
+from fastapi import UploadFile
+from fastapi import File
 
-from app.services.file.file_service import FileService
-from app.services.parser.pdf_parser import PDFParser
-from app.services.chunking.text_chunker import TextChunker
+from app.services.indexing.indexing_service import IndexingService
 
 router = APIRouter()
 
-file_service = FileService()
-
-pdf_parser = PDFParser()
-
-chunker = TextChunker()
+indexing_service = IndexingService()
 
 
 @router.post("/upload")
-async def upload_pdf(file: UploadFile = File(...)):
+async def upload_pdf(
 
-    saved_file = file_service.save_pdf(file)
+    file: UploadFile = File(...)
 
-    pages = pdf_parser.extract_text(
-        saved_file["path"]
-    )
+):
 
-    chunks = chunker.chunk_pages(pages)
-
-    return {
-
-        "message": "PDF processed successfully",
-
-        "pages": len(pages),
-
-        "chunks": len(chunks),
-
-        "preview": chunks[:3],
-
-        "file": saved_file
-
-    }
+    return indexing_service.index_pdf(file)
