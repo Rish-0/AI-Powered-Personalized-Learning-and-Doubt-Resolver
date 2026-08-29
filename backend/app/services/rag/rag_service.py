@@ -1,8 +1,5 @@
 from app.services.retrieval.retriever import RetrieverService
 from app.services.retrieval.context_builder import ContextBuilder
-from app.services.routing.query_router import QueryRouter
-
-from app.services.search.tavily_service import TavilyService
 from app.services.rag.prompt_builder import PromptBuilder
 from app.services.llm.groq_service import GroqService
 
@@ -15,37 +12,33 @@ class RAGService:
 
         self.groq = GroqService()
 
-    def ask(self, question: str):
+    def ask(self, question):
 
-        web_query = QueryRouter.is_web_query(question)
+        docs = self.retriever.retrieve(question)
 
-        if web_query:
+        context = ContextBuilder.build(docs)
 
-            results = TavilyService().search(question)
-            docs = []
-            context = ""
+        prompt = PromptBuilder.build(
+            context,
+            question
+        )
 
-            for result in results:
-
-                context += result["content"] + "\n\n"
-
-        else:
-
-            docs = self.retriever.retrieve(question)
-            context = ContextBuilder.build(docs)
-
-        prompt = PromptBuilder.build(question, context)
-        answer = self.groq.chat(prompt)
+        answer = self.groq.generate_response(
+            prompt
+        )
 
         return {
 
             "question": question,
+
             "answer": answer,
+
             "sources": [
 
                 {
 
                     "page": doc.metadata["page"],
+
                     "source": doc.metadata["source"]
 
                 }

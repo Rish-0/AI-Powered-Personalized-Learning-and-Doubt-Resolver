@@ -5,18 +5,16 @@ class RetrieverService:
 
     def __init__(self):
 
-        self.vector_db = FAISSService().load()
+        vector_db = FAISSService().load()
 
-        self.retriever = self.vector_db.as_retriever(
+        self.retriever = vector_db.as_retriever(
 
             search_type="similarity",
 
-            search_kwargs={
-                "k": 5
-            }
+            search_kwargs={"k": 5}
 
         )
 
-    def retrieve(self, question: str):
+    def retrieve(self, question):
 
         return self.retriever.invoke(question)

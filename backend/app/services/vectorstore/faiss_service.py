@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from langchain_community.vectorstores import FAISS
 
 from app.services.embeddings.embedding_service import EmbeddingService
@@ -7,35 +9,32 @@ class FAISSService:
 
     def __init__(self):
 
-        self.embedding = EmbeddingService().get_model()
+        self.embedding = EmbeddingService().get_embedding_model()
 
-    def create_vector_store(self, chunks):
+        self.index_path = Path("vector_store/faiss_index")
 
-        vectorstore = FAISS.from_documents(
+    def create(self, documents):
 
-            documents=chunks,
-
-            embedding=self.embedding
-
+        return FAISS.from_documents(
+            documents,
+            self.embedding
         )
 
-        return vectorstore
+    def save(self, vector_store):
 
-    def save(self, vectorstore):
+        self.index_path.mkdir(
+            parents=True,
+            exist_ok=True
+        )
 
-        vectorstore.save_local(
-
-            "vector_store/faiss_index"
+        vector_store.save_local(
+            str(self.index_path)
         )
 
     def load(self):
 
         return FAISS.load_local(
-
-            "vector_store/faiss_index",
-
+            str(self.index_path),
             self.embedding,
-
             allow_dangerous_deserialization=True
-
         )

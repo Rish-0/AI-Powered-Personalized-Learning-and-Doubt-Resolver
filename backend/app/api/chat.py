@@ -5,8 +5,6 @@ from app.services.rag.rag_service import RAGService
 
 router = APIRouter()
 
-rag = RAGService()
-
 
 class ChatRequest(BaseModel):
 
@@ -14,15 +12,8 @@ class ChatRequest(BaseModel):
 
 
 @router.post("/chat")
+async def chat(request: ChatRequest):
 
-async def chat(
+    rag = RAGService()
 
-        request: ChatRequest
-
-):
-
-    return rag.ask(
-
-        request.question
-
-    )
+    return rag.ask(request.question)

@@ -20,35 +20,32 @@ class IndexingService:
 
     def index_pdf(self, file: UploadFile):
 
-        # Save uploaded file
-        saved_file = self.file_service.save_pdf(file)
+        saved = self.file_service.save_pdf(file)
 
-        # Parse PDF
         pages = self.parser.extract_text(
-            saved_file["path"]
+            saved["path"]
         )
 
-        # Chunk pages
         documents = self.chunker.chunk_pages(
             pages
         )
 
-        # Build Vector Store
         db = self.vector_db.create(
             documents
         )
 
-        # Save Vector Store
-        self.vector_db.save(db)
+        self.vector_db.save(
+            db
+        )
 
         return {
 
             "message": "PDF indexed successfully",
 
-            "file": saved_file,
-
             "pages": len(pages),
 
-            "chunks": len(documents)
+            "chunks": len(documents),
+
+            "file": saved
 
         }

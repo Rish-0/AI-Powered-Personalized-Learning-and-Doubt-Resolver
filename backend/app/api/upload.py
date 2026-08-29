@@ -1,19 +1,13 @@
-from fastapi import APIRouter
-from fastapi import UploadFile
-from fastapi import File
+from fastapi import APIRouter, UploadFile, File
 
 from app.services.indexing.indexing_service import IndexingService
 
 router = APIRouter()
 
-indexing_service = IndexingService()
-
 
 @router.post("/upload")
-async def upload_pdf(
+async def upload_pdf(file: UploadFile = File(...)):
 
-    file: UploadFile = File(...)
-
-):
+    indexing_service = IndexingService()
 
     return indexing_service.index_pdf(file)

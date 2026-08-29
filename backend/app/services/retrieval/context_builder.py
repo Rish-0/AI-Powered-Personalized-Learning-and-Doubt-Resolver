@@ -5,21 +5,18 @@ class ContextBuilder:
 
         context = []
 
-        for document in documents:
-
-            page = document.metadata.get("page")
-
-            source = document.metadata.get("source")
+        for doc in documents:
 
             context.append(
 
                 f"""
-Source : {source}
-Page : {page}
+Source : {doc.metadata["source"]}
 
-{document.page_content}
+Page : {doc.metadata["page"]}
+
+{doc.page_content}
 """
 
             )
 
-        return "\n\n-----------------------------\n\n".join(context)
+        return "\n".join(context)
