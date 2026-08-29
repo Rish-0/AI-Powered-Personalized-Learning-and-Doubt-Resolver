@@ -9,31 +9,21 @@ class GroqService:
             api_key=settings.GROQ_API_KEY
         )
 
-    def generate_response(self, question: str):
-
+    def generate_response(self, prompt: str):
         try:
-
             completion = self.client.chat.completions.create(
-
                 model=settings.MODEL_NAME,
-
                 messages=[
                     {
-                        "role": "system",
-                        "content": "You are an AI Tutor."
-                    },
-                    {
                         "role": "user",
-                        "content": question
+                        "content": prompt
                     }
                 ],
-
-                temperature=0.4,
+                temperature=0.2,
                 max_tokens=1024
             )
 
             return completion.choices[0].message.content
-
         except Exception as e:
             print("Groq Error:", e)
             raise

@@ -1,31 +1,28 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 from pydantic import BaseModel
 
-from app.services.llm.groq_service import GroqService
+from app.services.rag.rag_service import RAGService
 
 router = APIRouter()
 
-groq_service = GroqService()
+rag = RAGService()
 
 
 class ChatRequest(BaseModel):
+
     question: str
 
 
-class ChatResponse(BaseModel):
-    answer: str
+@router.post("/chat")
 
+async def chat(
 
-@router.post("/chat", response_model=ChatResponse)
-async def chat(request: ChatRequest):
+        request: ChatRequest
 
-    try:
-        answer = groq_service.generate_response(request.question)
+):
 
-        return ChatResponse(answer=answer)
+    return rag.ask(
 
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=str(e)
-        )
+        request.question
+
+    )
