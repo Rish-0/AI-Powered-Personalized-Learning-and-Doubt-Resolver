@@ -1,30 +1,27 @@
 class PromptBuilder:
 
     @staticmethod
-    def build(context: str, question: str):
+
+    def build(context, question):
 
         return f"""
 You are an AI Tutor.
 
 Answer ONLY using the provided context.
 
-If the answer is not present in the context, reply exactly:
+If the context does not contain the answer,
 
-"I couldn't find the answer in the uploaded document."
+reply:
 
------------------------------------------
+"I couldn't find sufficient information."
 
 Context
 
 {context}
 
------------------------------------------
-
 Question
 
 {question}
-
------------------------------------------
 
 Answer:
 """
