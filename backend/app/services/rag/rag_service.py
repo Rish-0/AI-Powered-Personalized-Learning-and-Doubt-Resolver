@@ -1,7 +1,11 @@
+from matplotlib.style import context
+
 from app.services.retrieval.retriever import RetrieverService
 from app.services.retrieval.context_builder import ContextBuilder
 from app.services.rag.prompt_builder import PromptBuilder
 from app.services.llm.groq_service import GroqService
+from backend.app.services import memory
+from backend.app.services.memory.conversation_service import ConversationService
 
 
 class RAGService:
@@ -18,13 +22,36 @@ class RAGService:
 
         context = ContextBuilder.build(docs)
 
+        memory = ConversationService().get_recent_context()
+
+        prompt_context = PromptContext(
+
+            question=question,
+
+            retrieved_context=context,
+
+            conversation_memory=memory,
+
+            sources=docs
+
+        )
+
         prompt = PromptBuilder.build(
-            context,
-            question
+            prompt_context
         )
 
         answer = self.groq.generate_response(
             prompt
+        )
+
+        MemoryService().save(
+
+            question,
+
+            answer,
+
+            "PDF_RAG"
+
         )
 
         return {
