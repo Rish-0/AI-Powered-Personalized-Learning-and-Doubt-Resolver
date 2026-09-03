@@ -1,5 +1,6 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
+from app.graph.workflow import graph
 
 from app.services.rag.rag_service import RAGService
 
@@ -12,8 +13,25 @@ class ChatRequest(BaseModel):
 
 
 @router.post("/chat")
+
 async def chat(request: ChatRequest):
 
-    rag = RAGService()
+    result = graph.invoke(
 
-    return rag.ask(request.question)
+        {
+
+            "question": request.question,
+
+            "route": "",
+
+            "context": "",
+
+            "answer": "",
+
+            "sources": []
+
+        }
+
+    )
+
+    return result
