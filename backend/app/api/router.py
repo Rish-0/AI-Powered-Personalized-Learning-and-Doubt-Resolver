@@ -1,14 +1,11 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
 
-from app.services.agents.router_agent import RouterAgent
-from app.services.agents.tool_executor import ToolExecutor
+from app.services.agents.manager import AgentManager
 
 router = APIRouter()
 
-agent = RouterAgent()
-
-executor = ToolExecutor()
+manager = AgentManager()
 
 
 class RouteRequest(BaseModel):
@@ -18,22 +15,8 @@ class RouteRequest(BaseModel):
 
 @router.post("/route")
 
-async def route_question(
+async def route_question(request: RouteRequest):
 
-        request: RouteRequest
-
-):
-
-    route = agent.route(
-
+    return manager.execute(
         request.question
-
-    )
-
-    return executor.execute(
-
-        route,
-
-        request.question
-
     )

@@ -55,11 +55,9 @@ Answer:
 
             return {
 
-                "route": "WEB_SEARCH",
+            "answer":answer,
 
-                "answer": answer,
-
-                "sources": results
+            "sources":results
 
             }
 
