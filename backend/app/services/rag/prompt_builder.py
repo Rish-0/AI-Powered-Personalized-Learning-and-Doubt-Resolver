@@ -23,7 +23,39 @@ Instructions:
 
 ==================================================
 
+Student Profile
+
+Difficulty
+
+Intermediate
+
+Learning Style
+
+Visual
+
+Weak Topics
+
+Deadlock
+
+Scheduling
+
+--------------------------------
+
 Previous Conversation
+
+...
+
+--------------------------------
+
+Retrieved Context
+
+...
+
+--------------------------------
+
+Question
+
+...
 
 {prompt_context.conversation_memory}
 

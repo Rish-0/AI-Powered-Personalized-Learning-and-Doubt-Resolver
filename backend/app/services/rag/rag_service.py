@@ -1,3 +1,5 @@
+import profile
+
 from matplotlib.style import context
 
 from app.services.retrieval.retriever import RetrieverService
@@ -29,6 +31,8 @@ class RAGService:
             question=question,
 
             retrieved_context=context,
+
+            profile_context=profile,
 
             conversation_memory=memory,
 

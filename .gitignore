@@ -1,26 +1,14 @@
-# Python
-__pycache__/
-*.py[cod]
-*.pyo
+# Runtime data
+data/
 
-# Virtual Environments
+# Environment
+.env
 venv/
 .venv/
 
-# Environment Variables
-.env
-backend/app/.env
+# Cache
+__pycache__/
+*.py[cod]
 
-# VS Code
+# IDE
 .vscode/
-
-# Python cache
-.pytest_cache/
-.mypy_cache/
-
-# Node
-node_modules/
-
-# OS
-.DS_Store
-Thumbs.db

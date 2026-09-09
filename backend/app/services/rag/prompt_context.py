@@ -11,8 +11,10 @@ class PromptContext:
 
     conversation_memory: str = ""
 
+    profile_context: str = ""
+
     web_context: str = ""
 
-    student_profile: Dict = field(default_factory=dict)
-
     sources: List = field(default_factory=list)
+
+    metadata: Dict = field(default_factory=dict)
