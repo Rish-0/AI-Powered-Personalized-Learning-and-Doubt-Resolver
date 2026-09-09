@@ -1,13 +1,17 @@
-import profile
-
-from matplotlib.style import context
-
 from app.services.retrieval.retriever import RetrieverService
 from app.services.retrieval.context_builder import ContextBuilder
+
+from app.services.rag.prompt_context import PromptContext
 from app.services.rag.prompt_builder import PromptBuilder
+
 from app.services.llm.groq_service import GroqService
-from backend.app.services import memory
-from backend.app.services.memory.conversation_service import ConversationService
+
+from app.services.memory.memory_service import MemoryService
+from app.services.memory.conversation_service import ConversationService
+
+from app.services.personalization.personalization_service import (
+    PersonalizationService,
+)
 
 
 class RAGService:
@@ -18,25 +22,41 @@ class RAGService:
 
         self.groq = GroqService()
 
-    def ask(self, question):
+        self.memory = MemoryService()
 
-        docs = self.retriever.retrieve(question)
+        self.conversation = ConversationService()
 
-        context = ContextBuilder.build(docs)
+        self.personalization = PersonalizationService()
 
-        memory = ConversationService().get_recent_context()
+    def ask(self, username: str, question: str):
+
+        documents = self.retriever.retrieve(question)
+
+        retrieved_context = ContextBuilder.build(
+            documents
+        )
+
+        conversation_memory = (
+            self.conversation.get_recent_context()
+        )
+
+        profile = (
+            self.personalization.build_profile_context(
+                username
+            )
+        )
 
         prompt_context = PromptContext(
 
             question=question,
 
-            retrieved_context=context,
+            retrieved_context=retrieved_context,
+
+            conversation_memory=conversation_memory,
 
             profile_context=profile,
 
-            conversation_memory=memory,
-
-            sources=docs
+            sources=documents
 
         )
 
@@ -48,7 +68,7 @@ class RAGService:
             prompt
         )
 
-        MemoryService().save(
+        self.memory.save(
 
             question,
 
@@ -68,13 +88,13 @@ class RAGService:
 
                 {
 
-                    "page": doc.metadata["page"],
+                    "page": doc.metadata.get("page"),
 
-                    "source": doc.metadata["source"]
+                    "source": doc.metadata.get("source")
 
                 }
 
-                for doc in docs
+                for doc in documents
 
             ]
 

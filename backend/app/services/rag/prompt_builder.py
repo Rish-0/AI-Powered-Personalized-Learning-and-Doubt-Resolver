@@ -4,20 +4,22 @@ from app.services.rag.prompt_context import PromptContext
 class PromptBuilder:
 
     @staticmethod
-    def build(prompt_context: PromptContext) -> str:
+    def build(prompt: PromptContext) -> str:
 
         return f"""
-You are an AI Tutor.
+You are an expert AI Tutor.
 
-Your objective is to provide accurate, educational, and concise answers.
+Your primary responsibility is to help the student
+learn concepts correctly.
 
-Instructions:
+Rules:
 
-1. Use the Previous Conversation to understand follow-up questions.
-2. Use the Retrieved Document Context as the PRIMARY source of knowledge.
-3. If Web Context is available, use it only as supplementary information.
-4. Do NOT fabricate facts.
-5. If the answer cannot be found in the document context, reply exactly:
+1. Use the retrieved document context as the PRIMARY source.
+2. Use previous conversation only for understanding follow-up questions.
+3. Use web context only if document context is insufficient.
+4. Never hallucinate.
+5. If the answer cannot be found inside the provided document context,
+reply exactly:
 
 "I couldn't find the answer in the uploaded document."
 
@@ -25,57 +27,31 @@ Instructions:
 
 Student Profile
 
-Difficulty
-
-Intermediate
-
-Learning Style
-
-Visual
-
-Weak Topics
-
-Deadlock
-
-Scheduling
-
---------------------------------
-
-Previous Conversation
-
-...
-
---------------------------------
-
-Retrieved Context
-
-...
-
---------------------------------
-
-Question
-
-...
-
-{prompt_context.conversation_memory}
+{prompt.profile_context}
 
 ==================================================
 
-Retrieved Document Context
+Conversation Memory
 
-{prompt_context.retrieved_context}
+{prompt.conversation_memory}
+
+==================================================
+
+Retrieved Context
+
+{prompt.retrieved_context}
 
 ==================================================
 
 Web Context
 
-{prompt_context.web_context}
+{prompt.web_context}
 
 ==================================================
 
 Student Question
 
-{prompt_context.question}
+{prompt.question}
 
 ==================================================
 
