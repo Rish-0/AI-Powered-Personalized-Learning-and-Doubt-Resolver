@@ -1,17 +1,31 @@
-from app.services.rag.rag_service import RAGService
-from app.services.search.tavily_service import TavilyService
-from app.services.llm.groq_service import GroqService
-
-
 class ToolExecutor:
 
     def __init__(self):
 
-        self.rag = RAGService()
+        self._rag = None
+        self._search = None
+        self._llm = None
 
-        self.search = TavilyService()
+    @property
+    def rag(self):
+        if self._rag is None:
+            from app.services.rag.rag_service import RAGService
+            self._rag = RAGService()
+        return self._rag
 
-        self.llm = GroqService()
+    @property
+    def search(self):
+        if self._search is None:
+            from app.services.search.tavily_service import TavilyService
+            self._search = TavilyService()
+        return self._search
+
+    @property
+    def llm(self):
+        if self._llm is None:
+            from app.services.llm.groq_service import GroqService
+            self._llm = GroqService()
+        return self._llm
 
     def execute(self, route: str, question: str):
 
@@ -19,7 +33,7 @@ class ToolExecutor:
 
         if route == "PDF_RAG":
 
-            return self.rag.ask(question)
+            return self.rag.ask("student", question)
 
         elif route == "WEB_SEARCH":
 

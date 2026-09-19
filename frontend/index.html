@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="AI-Powered Personalized Learning & Doubt Resolver — your intelligent study companion that answers questions from PDFs, the web, and general knowledge.">
+    <title>AI Tutor — Personalized Learning & Doubt Resolver</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Marked.js for markdown rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Background animated gradient orbs -->
+    <div class="bg-orbs">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="url(#grad)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <defs>
+                                <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" style="stop-color:#6c5ce7"/>
+                                    <stop offset="100%" style="stop-color:#00cec9"/>
+                                </linearGradient>
+                            </defs>
+                            <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+                            <path d="M6 12v5c0 1.1 2.7 3 6 3s6-1.9 6-3v-5"/>
+                        </svg>
+                    </div>
+                    <span class="logo-text">AI Tutor</span>
+                </div>
+                <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="3" y1="6" x2="21" y2="6"/>
+                        <line x1="3" y1="12" x2="21" y2="12"/>
+                        <line x1="3" y1="18" x2="21" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+
+            <button class="new-chat-btn" id="newChatBtn">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="5" x2="12" y2="19"/>
+                    <line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+                New Chat
+            </button>
+
+            <div class="sidebar-section">
+                <h3 class="sidebar-section-title">Recent Conversations</h3>
+                <div class="history-list" id="historyList">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <h3 class="sidebar-section-title">Uploaded Materials</h3>
+                <div class="uploaded-files-list" id="uploadedFilesList">
+                    <p class="empty-state-text">No files uploaded yet</p>
+                </div>
+            </div>
+
+            <div class="sidebar-footer">
+                <button class="sidebar-footer-btn" id="profileBtn">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                        <circle cx="12" cy="7" r="4"/>
+                    </svg>
+                    Profile Settings
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Chat Area -->
+        <main class="main-content">
+            <!-- Top Bar -->
+            <header class="top-bar">
+                <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Open menu">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="3" y1="6" x2="21" y2="6"/>
+                        <line x1="3" y1="12" x2="21" y2="12"/>
+                        <line x1="3" y1="18" x2="21" y2="18"/>
+                    </svg>
+                </button>
+                <div class="top-bar-info">
+                    <h1 class="top-bar-title">AI Tutor</h1>
+                    <span class="top-bar-status" id="connectionStatus">
+                        <span class="status-dot"></span>
+                        Ready
+                    </span>
+                </div>
+                <div class="top-bar-actions">
+                    <button class="action-btn" id="uploadBtn" title="Upload PDF">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="17 8 12 3 7 8"/>
+                            <line x1="12" y1="3" x2="12" y2="15"/>
+                        </svg>
+                    </button>
+                    <button class="action-btn" id="topProfileBtn" title="Profile">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="3"/>
+                            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                        </svg>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Chat Messages -->
+            <div class="chat-container" id="chatContainer">
+                <!-- Welcome Screen -->
+                <div class="welcome-screen" id="welcomeScreen">
+                    <div class="welcome-icon">
+                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="url(#gradWelcome)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <defs>
+                                <linearGradient id="gradWelcome" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" style="stop-color:#6c5ce7"/>
+                                    <stop offset="100%" style="stop-color:#00cec9"/>
+                                </linearGradient>
+                            </defs>
+                            <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+                            <path d="M6 12v5c0 1.1 2.7 3 6 3s6-1.9 6-3v-5"/>
+                        </svg>
+                    </div>
+                    <h2 class="welcome-title">Welcome to AI Tutor</h2>
+                    <p class="welcome-subtitle">Your personalized learning companion. Upload study materials, ask questions, and learn smarter.</p>
+                    <div class="welcome-cards">
+                        <div class="welcome-card" data-prompt="Explain the concept of deadlock in operating systems">
+                            <div class="welcome-card-icon">📚</div>
+                            <span>Ask about your study material</span>
+                        </div>
+                        <div class="welcome-card" data-prompt="What are the latest developments in AI?">
+                            <div class="welcome-card-icon">🌐</div>
+                            <span>Search the web for latest info</span>
+                        </div>
+                        <div class="welcome-card" data-prompt="Write a Python function to implement binary search">
+                            <div class="welcome-card-icon">💻</div>
+                            <span>Get coding help</span>
+                        </div>
+                        <div class="welcome-card" data-prompt="Explain the difference between TCP and UDP">
+                            <div class="welcome-card-icon">🧠</div>
+                            <span>Clarify concepts</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Messages will be appended here -->
+                <div class="messages" id="messages"></div>
+            </div>
+
+            <!-- Input Area -->
+            <div class="input-area">
+                <div class="input-wrapper">
+                    <textarea
+                        id="messageInput"
+                        class="message-input"
+                        placeholder="Ask me anything... (Shift+Enter for new line)"
+                        rows="1"
+                        aria-label="Type your question"
+                    ></textarea>
+                    <button class="send-btn" id="sendBtn" title="Send message" disabled>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="22" y1="2" x2="11" y2="13"/>
+                            <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                        </svg>
+                    </button>
+                </div>
+                <p class="input-hint">AI Tutor can make mistakes. Verify important information.</p>
+            </div>
+        </main>
+    </div>
+
+    <!-- Upload Modal -->
+    <div class="modal-overlay" id="uploadModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Upload Study Material</h2>
+                <button class="modal-close" id="uploadModalClose" aria-label="Close">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="upload-zone" id="uploadZone">
+                <div class="upload-zone-content">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="upload-icon">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="17 8 12 3 7 8"/>
+                        <line x1="12" y1="3" x2="12" y2="15"/>
+                    </svg>
+                    <p class="upload-text">Drag & drop your PDF here</p>
+                    <p class="upload-subtext">or click to browse</p>
+                    <p class="upload-limit">Maximum file size: 20 MB</p>
+                </div>
+                <input type="file" id="fileInput" accept=".pdf" hidden>
+            </div>
+            <div class="upload-progress" id="uploadProgress" style="display: none;">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <p class="upload-status" id="uploadStatus">Uploading...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Modal -->
+    <div class="modal-overlay" id="profileModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Profile Settings</h2>
+                <button class="modal-close" id="profileModalClose" aria-label="Close">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <form class="profile-form" id="profileForm">
+                <div class="form-group">
+                    <label class="form-label" for="usernameInput">Username</label>
+                    <input type="text" id="usernameInput" class="form-input" placeholder="Enter your name" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="difficultySelect">Difficulty Level</label>
+                    <div class="difficulty-options" id="difficultyOptions">
+                        <button type="button" class="difficulty-btn" data-value="beginner">
+                            <span class="diff-emoji">🌱</span> Beginner
+                        </button>
+                        <button type="button" class="difficulty-btn active" data-value="medium">
+                            <span class="diff-emoji">📖</span> Intermediate
+                        </button>
+                        <button type="button" class="difficulty-btn" data-value="advanced">
+                            <span class="diff-emoji">🚀</span> Advanced
+                        </button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="learningStyleSelect">Learning Style</label>
+                    <div class="style-options" id="styleOptions">
+                        <button type="button" class="style-btn" data-value="visual">
+                            <span class="style-icon">👁️</span>
+                            <span>Visual</span>
+                            <span class="style-desc">Diagrams & charts</span>
+                        </button>
+                        <button type="button" class="style-btn active" data-value="textual">
+                            <span class="style-icon">📝</span>
+                            <span>Textual</span>
+                            <span class="style-desc">Detailed explanations</span>
+                        </button>
+                        <button type="button" class="style-btn" data-value="example-based">
+                            <span class="style-icon">💡</span>
+                            <span>Examples</span>
+                            <span class="style-desc">Learn by examples</span>
+                        </button>
+                        <button type="button" class="style-btn" data-value="step-by-step">
+                            <span class="style-icon">🪜</span>
+                            <span>Step-by-Step</span>
+                            <span class="style-desc">Sequential breakdown</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="weakTopicsInput">Weak Topics</label>
+                    <input type="text" id="weakTopicsInput" class="form-input" placeholder="e.g. Recursion, Pointers, Calculus">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="strongTopicsInput">Strong Topics</label>
+                    <input type="text" id="strongTopicsInput" class="form-input" placeholder="e.g. Arrays, OOP, Linear Algebra">
+                </div>
+                <button type="submit" class="save-profile-btn">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1-2 2h11l4 4v6a2 2 0 0 1-2 2z"/>
+                        <polyline points="17 21 17 13 7 13 7 21"/>
+                        <polyline points="7 3 7 8 15 8"/>
+                    </svg>
+                    Save Profile
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Sidebar overlay for mobile -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>

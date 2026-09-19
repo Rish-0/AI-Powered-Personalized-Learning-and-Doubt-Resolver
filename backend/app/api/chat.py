@@ -7,7 +7,7 @@ router = APIRouter()
 
 
 class ChatRequest(BaseModel):
-    username: str
+    username: str = "student"
     question: str
 
 
@@ -27,4 +27,9 @@ async def chat(request: ChatRequest):
         }
     )
 
-    return result
+    return {
+        "question": result.get("question", request.question),
+        "answer": result.get("answer", ""),
+        "route": result.get("route", ""),
+        "sources": result.get("sources", [])
+    }

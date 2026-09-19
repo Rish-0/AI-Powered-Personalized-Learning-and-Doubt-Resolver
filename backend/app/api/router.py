@@ -1,11 +1,17 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
 
-from app.services.agents.manager import AgentManager
-
 router = APIRouter()
 
-manager = AgentManager()
+_manager = None
+
+
+def _get_manager():
+    global _manager
+    if _manager is None:
+        from app.services.agents.manager import AgentManager
+        _manager = AgentManager()
+    return _manager
 
 
 class RouteRequest(BaseModel):
@@ -17,6 +23,6 @@ class RouteRequest(BaseModel):
 
 async def route_question(request: RouteRequest):
 
-    return manager.execute(
+    return _get_manager().execute(
         request.question
     )

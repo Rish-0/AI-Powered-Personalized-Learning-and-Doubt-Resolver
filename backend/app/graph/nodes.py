@@ -1,21 +1,47 @@
 from app.services.agents.router_agent import RouterAgent
-from app.services.rag.rag_service import RAGService
-from app.services.search.tavily_service import TavilyService
 from app.services.llm.groq_service import GroqService
 
 
-router = RouterAgent()
+# Lazy singletons — created on first use, not at import time
+_router = None
+_rag = None
+_search = None
+_groq = None
 
-rag = RAGService()
 
-search = TavilyService()
+def _get_router():
+    global _router
+    if _router is None:
+        _router = RouterAgent()
+    return _router
 
-groq = GroqService()
+
+def _get_rag():
+    global _rag
+    if _rag is None:
+        from app.services.rag.rag_service import RAGService
+        _rag = RAGService()
+    return _rag
+
+
+def _get_search():
+    global _search
+    if _search is None:
+        from app.services.search.tavily_service import TavilyService
+        _search = TavilyService()
+    return _search
+
+
+def _get_groq():
+    global _groq
+    if _groq is None:
+        _groq = GroqService()
+    return _groq
 
 
 def router_node(state):
 
-    route = router.route(
+    route = _get_router().route(
         state["question"]
     )
 
@@ -26,7 +52,8 @@ def router_node(state):
 
 def pdf_node(state):
 
-    result = rag.ask(
+    result = _get_rag().ask(
+        state.get("username", "student"),
         state["question"]
     )
 
@@ -39,7 +66,7 @@ def pdf_node(state):
 
 def web_node(state):
 
-    results = search.search(
+    results = _get_search().search(
         state["question"]
     )
 
@@ -49,7 +76,7 @@ def web_node(state):
 
         context += item["content"] + "\n"
 
-    answer = groq.generate_response(
+    answer = _get_groq().generate_response(
 
         f"""
 Use this context.
@@ -74,7 +101,7 @@ Answer
 
 def chat_node(state):
 
-    state["answer"] = groq.generate_response(
+    state["answer"] = _get_groq().generate_response(
 
         state["question"]
 
