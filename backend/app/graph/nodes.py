@@ -41,6 +41,13 @@ def _get_groq():
 
 def router_node(state):
 
+    # If the user has uploaded and indexed a study material PDF, route strictly to PDF_RAG
+    from app.services.vectorstore.faiss_service import FAISSService
+    faiss_service = FAISSService()
+    if faiss_service.index_path.exists():
+        state["route"] = "PDF_RAG"
+        return state
+
     route = _get_router().route(
         state["question"]
     )

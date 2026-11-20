@@ -32,9 +32,23 @@ class RAGService:
 
         documents = self.retriever.retrieve(question)
 
+        if not documents:
+            return {
+                "question": question,
+                "answer": "I could not find any relevant information in the uploaded document to answer this question. Please ensure your query is covered in the uploaded PDF.",
+                "sources": []
+            }
+
         retrieved_context = ContextBuilder.build(
             documents
         )
+
+        if not retrieved_context.strip():
+            return {
+                "question": question,
+                "answer": "I could not find any relevant information in the uploaded document to answer this question. Please ensure your query is covered in the uploaded PDF.",
+                "sources": []
+            }
 
         conversation_memory = (
             self.conversation.get_recent_context()

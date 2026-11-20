@@ -12,3 +12,9 @@ __pycache__/
 
 # IDE
 .vscode/
+
+# Uploaded PDFs & FAISS index (user-generated, not source code)
+backend/uploaded_files/
+backend/vector_store/
+uploaded_files/
+vector_store/
