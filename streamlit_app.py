@@ -322,10 +322,37 @@ def render_route_badge(route: str):
     if route_upper == "PDF_RAG":
         return '<div class="route-badge route-pdf">📄 Solved using Uploaded PDF (FAISS RAG)</div>'
     elif route_upper == "WEB_SEARCH":
-        return '<div class="route-badge route-web">🌐 Solved using Real-Time Web Search</div>'
+        return '<div class="route-badge route-web">🌐 Solved using Tavily Web Search (Not found in PDF)</div>'
     elif route_upper == "GENERAL_CHAT":
         return '<div class="route-badge route-general">💬 Solved using General Knowledge</div>'
     return f'<div class="route-badge route-general">{route}</div>'
+
+
+def send_chat_message_stream(username: str, question: str):
+    """
+    Streams step-by-step progress events (e.g. searching PDF, searching Web with Tavily)
+    from the backend /api/chat/stream endpoint.
+    Falls back to /api/chat if streaming is unavailable.
+    """
+    import json
+    try:
+        payload = {"username": username, "question": question}
+        r = requests.post(f"{st.session_state.api_base}/api/chat/stream", json=payload, stream=True, timeout=90)
+        if r.status_code == 200:
+            for line in r.iter_lines():
+                if line:
+                    event = json.loads(line.decode("utf-8"))
+                    yield True, event
+            return
+    except Exception:
+        pass
+
+    # Fallback to standard endpoint
+    success, res = send_chat_message(username, question)
+    if success:
+        yield True, {"step": "done", "data": res}
+    else:
+        yield False, {"error": str(res)}
 
 
 # ==============================================================================
@@ -652,6 +679,9 @@ for idx, msg in enumerate(st.session_state.messages):
             if route:
                 st.markdown(render_route_badge(route), unsafe_allow_html=True)
 
+            if route == "WEB_SEARCH":
+                st.info("🌐 **Web Search Fallback:** This doubt was not found in your uploaded study material, so real-time information was retrieved from the web via Tavily.")
+
             # Response content
             st.markdown(msg["content"])
 
@@ -668,7 +698,9 @@ for idx, msg in enumerate(st.session_state.messages):
                         for s in sources:
                             title = s.get("title") or s.get("url") or "Web Result"
                             url = s.get("url", "#")
-                            st.markdown(f'<div class="source-box">🌐 <a href="{url}" target="_blank">{title}</a></div>', unsafe_allow_html=True)
+                            snippet = s.get("snippet", "")
+                            snippet_html = f'<br><small style="color: #a0aec0;">{snippet}</small>' if snippet else ""
+                            st.markdown(f'<div class="source-box">🌐 <a href="{url}" target="_blank"><b>{title}</b></a>{snippet_html}</div>', unsafe_allow_html=True)
                     else:
                         st.json(sources)
 
@@ -705,55 +737,87 @@ if final_prompt:
     with st.chat_message("user", avatar="👤"):
         st.markdown(final_prompt)
 
-    # 2. Get answer from backend
+    # 2. Get answer from backend with real-time status loader
     with st.chat_message("assistant", avatar="🎓"):
-        with st.spinner("🔍 Searching uploaded PDF, applying learning profile & generating solution..."):
-            success, res = send_chat_message(st.session_state.username, final_prompt)
+        status_box = st.status("🔍 Searching uploaded PDF...", expanded=True)
+        res = None
+        final_error = None
 
-            if success:
-                answer = res.get("answer", "No answer could be generated.")
+        for ok, event in send_chat_message_stream(st.session_state.username, final_prompt):
+            if not ok:
+                final_error = event.get("error", "Failed to connect to backend.")
+                break
+
+            step = event.get("step")
+            msg_text = event.get("message", "")
+
+            if step == "searching_pdf":
+                status_box.update(label="🔍 Searching uploaded PDF for answers...", state="running")
+                status_box.write(msg_text)
+            elif step == "analyzing_pdf":
+                status_box.update(label="📄 Analyzing document excerpts with AI...", state="running")
+                status_box.write(msg_text)
+            elif step == "searching_web":
+                status_box.update(label="🌐 Question not found in PDF. Searching the web with Tavily...", state="running")
+                status_box.write("⚠️ **Topic not found in uploaded PDF.** Launching live **Tavily Web Search**...")
+            elif step == "done":
+                res = event.get("data", {})
                 route = res.get("route", "")
-                sources = res.get("sources", [])
+                if route == "WEB_SEARCH":
+                    status_box.update(label="🌐 Solved via Tavily Web Search (Not found in PDF)", state="complete", expanded=False)
+                else:
+                    status_box.update(label="📄 Solved from Uploaded PDF", state="complete", expanded=False)
 
-                if route:
-                    st.markdown(render_route_badge(route), unsafe_allow_html=True)
+        if res:
+            answer = res.get("answer", "No answer could be generated.")
+            route = res.get("route", "")
+            sources = res.get("sources", [])
 
-                st.markdown(answer)
+            if route:
+                st.markdown(render_route_badge(route), unsafe_allow_html=True)
 
-                if sources:
-                    with st.expander(f"📚 View Citations & Sources ({len(sources)})", expanded=False):
-                        if route == "PDF_RAG":
-                            for s in sources:
-                                doc_title = s.get("source", active_doc)
-                                page_no = s.get("page", "N/A")
-                                st.markdown(f'<div class="source-box">📄 <b>{doc_title}</b> — Page {page_no}</div>', unsafe_allow_html=True)
-                        elif route == "WEB_SEARCH":
-                            for s in sources:
-                                title = s.get("title") or s.get("url") or "Web Result"
-                                url = s.get("url", "#")
-                                st.markdown(f'<div class="source-box">🌐 <a href="{url}" target="_blank">{title}</a></div>', unsafe_allow_html=True)
-                        else:
-                            st.json(sources)
+            if route == "WEB_SEARCH":
+                st.info("🌐 **Web Search Fallback:** This doubt was not found in your uploaded study material, so real-time information was retrieved from the web via Tavily.")
 
-                # Store assistant response
-                st.session_state.messages.append(
-                    {
-                        "role": "assistant",
-                        "content": answer,
-                        "route": route,
-                        "sources": sources,
-                    }
-                )
-            else:
-                error_msg = f"⚠️ Could not solve doubt.\n\n**Details:** {res}\n\nPlease check backend connection at `{st.session_state.api_base}`."
-                st.error(error_msg)
-                st.session_state.messages.append(
-                    {
-                        "role": "assistant",
-                        "content": error_msg,
-                        "route": "ERROR",
-                        "sources": [],
-                    }
-                )
+            st.markdown(answer)
+
+            if sources:
+                with st.expander(f"📚 View Citations & Sources ({len(sources)})", expanded=False):
+                    if route == "PDF_RAG":
+                        for s in sources:
+                            doc_title = s.get("source", active_doc)
+                            page_no = s.get("page", "N/A")
+                            st.markdown(f'<div class="source-box">📄 <b>{doc_title}</b> — Page {page_no}</div>', unsafe_allow_html=True)
+                    elif route == "WEB_SEARCH":
+                        for s in sources:
+                            title = s.get("title") or s.get("url") or "Web Result"
+                            url = s.get("url", "#")
+                            snippet = s.get("snippet", "")
+                            snippet_html = f'<br><small style="color: #a0aec0;">{snippet}</small>' if snippet else ""
+                            st.markdown(f'<div class="source-box">🌐 <a href="{url}" target="_blank"><b>{title}</b></a>{snippet_html}</div>', unsafe_allow_html=True)
+                    else:
+                        st.json(sources)
+
+            # Store assistant response
+            st.session_state.messages.append(
+                {
+                    "role": "assistant",
+                    "content": answer,
+                    "route": route,
+                    "sources": sources,
+                }
+            )
+        elif final_error:
+            status_box.update(label="❌ Failed to solve doubt", state="error", expanded=True)
+            error_msg = f"⚠️ Could not solve doubt.\n\n**Details:** {final_error}\n\nPlease check backend connection at `{st.session_state.api_base}`."
+            st.error(error_msg)
+            st.session_state.messages.append(
+                {
+                    "role": "assistant",
+                    "content": error_msg,
+                    "route": "ERROR",
+                    "sources": [],
+                }
+            )
 
     st.rerun()

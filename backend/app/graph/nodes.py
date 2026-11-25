@@ -68,6 +68,8 @@ def pdf_node(state):
 
     state["sources"] = result["sources"]
 
+    state["route"] = result.get("route", "PDF_RAG")
+
     return state
 
 
